@@ -9,6 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -33,7 +37,40 @@ class UsuarioServiceTest {
     }
 
     @Test
-    void testBuscarPorRut_Exitoso() {
+    void testFindAll_Exitoso() {
+        when(usuarioRepository.findAll()).thenReturn(Arrays.asList(usuarioMock));
+
+        List<Usuario> resultado = usuarioService.findAll();
+
+        assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+        assertEquals(1, resultado.size());
+        verify(usuarioRepository, times(1)).findAll();
+    }
+
+    @Test
+    void testFindById_Exitoso() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioMock));
+
+        Usuario resultado = usuarioService.findById(1L);
+
+        assertNotNull(resultado);
+        assertEquals("Juan Perez", resultado.getNombreCompleto());
+        verify(usuarioRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testFindById_NoExistente() {
+        when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Usuario resultado = usuarioService.findById(99L);
+
+        assertNull(resultado);
+        verify(usuarioRepository, times(1)).findById(99L);
+    }
+
+    @Test
+    void testFindByRut_Exitoso() {
         when(usuarioRepository.findByRut("11111111-1")).thenReturn(usuarioMock);
 
         Usuario resultado = usuarioService.findByRut("11111111-1");
@@ -41,6 +78,17 @@ class UsuarioServiceTest {
         assertNotNull(resultado);
         assertEquals("Juan Perez", resultado.getNombreCompleto());
         assertEquals("11111111-1", resultado.getRut());
+    }
+
+    @Test
+    void testFindByRol_Exitoso() {
+        when(usuarioRepository.findByRol(Usuario.Rol.BRIGADISTA)).thenReturn(Arrays.asList(usuarioMock));
+
+        List<Usuario> resultado = usuarioService.findByRol(Usuario.Rol.BRIGADISTA);
+
+        assertNotNull(resultado);
+        assertFalse(resultado.isEmpty());
+        verify(usuarioRepository, times(1)).findByRol(Usuario.Rol.BRIGADISTA);
     }
 
     @Test
@@ -52,5 +100,14 @@ class UsuarioServiceTest {
         assertNotNull(guardado);
         assertEquals(Usuario.Rol.CIUDADANO, guardado.getRol());
         verify(usuarioRepository, times(1)).save(any(Usuario.class));
+    }
+
+    @Test
+    void testDeleteById_Exitoso() {
+        doNothing().when(usuarioRepository).deleteById(1L);
+
+        usuarioService.deleteById(1L);
+
+        verify(usuarioRepository, times(1)).deleteById(1L);
     }
 }
